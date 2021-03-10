@@ -18,59 +18,67 @@
 </head>
 
 <body>
-    <div>
-        <h1>Step 1: Prepare data</h1>
-        <p>Draw 3 images of type [0] and 3 images of type [1].</p>
+    <div class="bg-info">
+        <h1 class="display-4 text-white">Neural Network</h1>
     </div>
-
-    <table class="table" id="datatable">
-        <tr>
-            <th>Type 0</th>
-            <td>
-                <canvas class="data" data-type="0" width="200" height="200"></canvas>
-            </td>
-            <td>
-                <canvas class="data" data-type="0" width="200" height="200"></canvas>
-            </td>
-            <td>
-                <canvas class="data" data-type="0" width="200" height="200"></canvas>
-            </td>
-        </tr>
-        <tr>
-            <th>Type 1</th>
-            <td>
-                <canvas class="data" data-type="1" width="200" height="200"></canvas>
-            </td>
-            <td>
-                <canvas class="data" data-type="1" width="200" height="200"></canvas>
-            </td>
-            <td>
-                <canvas class="data" data-type="1" width="200" height="200"></canvas>
-            </td>
-        </tr>
-    </table>
-
     <div>
-        <h1>Step 2: Train Model</h1>
-        <button class="btn btn-primary" id="train">Train</button>
-        <p id="log">Log</p>
-    </div>
-
-    <div>
-        <h1>Step 3: Evaluate Model</h1>
-        <button class="btn btn-success" id="guess">Guess</button>
+        <h1 class="display-4">Step 1: Prepare data</h1>
+        <p class="lead">Draw 3 images of type 0 and 3 images of type 1.</p>
+        <button id="restart" class="btn btn-danger">Restart</button>
     </div>
 
     <table class="table">
         <tr>
             <th>
-                <h1 id="answer">Guess</h1>
+                <p class="lead">Type 0</p>
             </th>
             <td>
-                <canvas id="g" width="200" height="200"></canvas>
+                <canvas class="data" data-type="0" width="200" height="200"></canvas>
+            </td>
+            <td>
+                <canvas class="data" data-type="0" width="200" height="200"></canvas>
+            </td>
+            <td>
+                <canvas class="data" data-type="0" width="200" height="200"></canvas>
+            </td>
+        </tr>
+        <tr>
+            <th>
+                <p class="lead">Type 1</p>
+            </th>
+            <td>
+                <canvas class="data" data-type="1" width="200" height="200"></canvas>
+            </td>
+            <td>
+                <canvas class="data" data-type="1" width="200" height="200"></canvas>
+            </td>
+            <td>
+                <canvas class="data" data-type="1" width="200" height="200"></canvas>
             </td>
         </tr>
     </table>
+
+    <div>
+        <h1 class="display-4">Step 2: Train Model</h1>
+        <button class="btn btn-primary" id="train">Train</button>
+        <p class="lead" id="log">Please click Train and wait for a few seconds.</p>
+    </div>
+
+    <div>
+        <h1 class="display-4">Step 3: Evaluate Model</h1>
+        <button class="btn btn-success" id="guess">Guess</button>
+    </div>
+
+    <div>
+        <canvas id="frame" width="200" height="200"></canvas>
+        <p class="lead" id="answer">Draw your test data.</p class="lead">
+    </div>
+
+    <div class="bg-info">
+        <a href="https://github.com/metoonhathung/neuralnetwork/" target="_blank">
+            <p class="lead text-white">Source Code on GitHub</p>
+        </a>
+    </div>
 </body>
 
 </html>
