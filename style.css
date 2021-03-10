@@ -1,0 +1,9 @@
+canvas {
+  border: 1px solid black;
+  cursor: default;
+  display: block;
+}
+
+* {
+  text-align: center;
+}
