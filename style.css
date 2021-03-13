@@ -1,3 +1,7 @@
+* {
+  text-align: center;
+}
+
 canvas {
   border: 1px solid black;
   cursor: default;
@@ -5,6 +9,6 @@ canvas {
   margin: auto;
 }
 
-* {
-  text-align: center;
+.disabled {
+  pointer-events: none;
 }

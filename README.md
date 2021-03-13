@@ -1,4 +1,4 @@
-# neuralnetwork
+# Neural Network
 
 https://metoonhathung.github.io/neuralnetwork/
 
@@ -6,7 +6,7 @@ Description: A web application to demonstrate how Neural Network works: prepare 
 
 Technologies: Javascript, HTML, CSS, Bootstrap
 
-###### To run the code locally:
+### To run the code locally:
 
 ```
 git clone https://github.com/metoonhathung/neuralnetwork.git

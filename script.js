@@ -1,9 +1,13 @@
-const restart = document.getElementById("restart");
-const train = document.getElementById("train");
-const guess = document.getElementById("guess");
-const log = document.getElementById("log");
-const answer = document.getElementById("answer");
-const frame = document.getElementById("frame");
+const restartButton = document.getElementById("restartButton");
+const trainButton = document.getElementById("trainButton");
+const guessButton = document.getElementById("guessButton");
+const logText = document.getElementById("logText");
+const answerText = document.getElementById("answerText");
+const canvasTable = document.getElementById("canvasTable");
+const testCanvas = document.getElementById("testCanvas");
+const imagesInput = document.getElementById("imagesInput");
+const typesInput = document.getElementById("typesInput");
+let myNet, arr, test;
 
 function DrawableCanvas(el) {
     this.type = parseInt(el.dataset.type);
@@ -145,31 +149,68 @@ function DrawableCanvas(el) {
     });
 }
 
-const test = new DrawableCanvas(frame);
-const arr = [...document.querySelectorAll(".data")].map(item => new DrawableCanvas(item));
-let myNet = new NeuralNetwork();
+createAll();
 
-train.addEventListener('click', () => {
+trainButton.addEventListener('click', () => {
     const data = [];
-    arr.forEach(item => data.push({ input: item.getVector(), output: [item.type] }));
-    console.log('data', data);
+    arr.forEach(item => {
+        for (let i = 0; i < parseInt(typesInput.value); i++) {
+            if (item.type === i) {
+                let outputArr = new Array(parseInt(typesInput.value)).fill(0);
+                outputArr[i] = 1;
+                data.push({ input: item.getVector(), output: outputArr });
+            }
+        }
+    });
     let stats = myNet.train(data);
     if (stats.error < 0.1) {
-        log.innerHTML = `Training completed.<br>${JSON.stringify(stats)}`;
+        logText.innerHTML = `Training completed.<br>${JSON.stringify(stats)}`;
+        guessButton.classList.remove("disabled");
     } else {
-        log.innerHTML = "Training failed.<br>Please click Restart and try again.";
+        logText.innerHTML = "Training failed.<br>Please click Restart and try again.";
     }
 });
 
-guess.addEventListener('click', () => {
+guessButton.addEventListener('click', () => {
     const result = myNet.run(test.getVector());
-    answer.innerHTML = `<b>Type ${Math.round(result)}</b><br>(${result})`;
+    const likely = myNet.likely(result);
+    answerText.innerHTML = `<b style="color:red;">Type ${likely}</b><br>(${result})`;
     test.reset();
 });
 
-restart.addEventListener('click', () => {
+restartButton.addEventListener('click', createAll);
+imagesInput.addEventListener('change', createAll);
+typesInput.addEventListener('change', createAll);
+
+function createAll() {
+    createCanvas();
     arr.forEach(item => item.reset());
-    log.innerHTML = "Please click Train and wait for a few seconds.";
-    answer.innerHTML = "Draw your test data.";
+    test = new DrawableCanvas(testCanvas);
+    test.reset();
     myNet = new NeuralNetwork();
-});
+    guessButton.classList.add("disabled");
+    logText.innerHTML = "Please click Train and wait for a few seconds.";
+    answerText.innerHTML = "Draw your test data.";
+}
+
+function createCanvas() {
+    let string = "";
+    for (let i = 0; i < parseInt(typesInput.value); i++) {
+        string += `
+        <tr>
+            <th>
+                <p class="lead">Type ${i}</p>
+            </th>
+        `;
+        for (let j = 0; j < parseInt(imagesInput.value); j++) {
+            string += `
+            <td>
+                <canvas class="data" data-type="${i}" width="200" height="200"></canvas>
+            </td>
+            `;
+        }
+        string += `</tr>`;
+    }
+    canvasTable.innerHTML = string;
+    arr = [...document.querySelectorAll(".data")].map(item => new DrawableCanvas(item));
+}

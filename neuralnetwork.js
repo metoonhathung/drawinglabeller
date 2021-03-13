@@ -19,6 +19,7 @@ function NeuralNetwork() {
     };
 
     this.train = (data) => {
+        console.log('DATA', data);
         collect(data);
 
         // randomly initialize weights with mean 0
@@ -60,7 +61,7 @@ function NeuralNetwork() {
                 console.log("Error after " + j + " iterations: " + error);
             }
         }
-        console.log("layer_2", layer_2);
+        console.log("LAYER_2", layer_2);
         return { inputSize, outputSize, hiddenSize, alpha, iterations, error };
     };
 
@@ -68,8 +69,20 @@ function NeuralNetwork() {
         let new_layer_0 = [input]; //sample x inputSize
         let new_layer_1 = sigmoid(mult(new_layer_0, synapse_0)); //sample x hiddenSize
         let new_layer_2 = sigmoid(mult(new_layer_1, synapse_1)); //sample x outputSize
-        console.log('RESULT', new_layer_2);
-        return new_layer_2;
+        console.log('RESULT', new_layer_2[0]);
+        return new_layer_2[0];
+    };
+
+    this.likely = (result) => {
+        let max = -1;
+        let index = -1;
+        for (let i = 0; i < result.length; i++) {
+            if (result[i] > max) {
+                max = result[i];
+                index = i;
+            }
+        }
+        return index;
     };
 
     // *********************************** UTILS ***********************************

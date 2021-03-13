@@ -23,55 +23,33 @@
     </div>
     <div>
         <h1 class="display-4">Step 1: Prepare data</h1>
-        <p class="lead">Draw 3 images of type 0 and 3 images of type 1.</p>
-        <button id="restart" class="btn btn-danger">Restart</button>
+        <p class="lead">Draw same images for same type and different images for different types.</p>
+        <label for="imagesInput">Images</label>
+        <input type="number" id="imagesInput" value="3" min="1">
+        <label for="typesInput">Types</label>
+        <input type="number" id="typesInput" value="2" min="1">
+        <br>
+        <button id="restartButton" class="btn btn-danger">Restart</button>
     </div>
 
-    <table class="table">
-        <tr>
-            <th>
-                <p class="lead">Type 0</p>
-            </th>
-            <td>
-                <canvas class="data" data-type="0" width="200" height="200"></canvas>
-            </td>
-            <td>
-                <canvas class="data" data-type="0" width="200" height="200"></canvas>
-            </td>
-            <td>
-                <canvas class="data" data-type="0" width="200" height="200"></canvas>
-            </td>
-        </tr>
-        <tr>
-            <th>
-                <p class="lead">Type 1</p>
-            </th>
-            <td>
-                <canvas class="data" data-type="1" width="200" height="200"></canvas>
-            </td>
-            <td>
-                <canvas class="data" data-type="1" width="200" height="200"></canvas>
-            </td>
-            <td>
-                <canvas class="data" data-type="1" width="200" height="200"></canvas>
-            </td>
-        </tr>
+    <table class="table" id="canvasTable">
+        <!-- Canvas -->
     </table>
 
     <div>
         <h1 class="display-4">Step 2: Train Model</h1>
-        <button class="btn btn-primary" id="train">Train</button>
-        <p class="lead" id="log">Please click Train and wait for a few seconds.</p>
+        <button class="btn btn-primary" id="trainButton">Train</button>
+        <p class="lead" id="logText">Please click Train and wait for a few seconds.</p>
     </div>
 
     <div>
         <h1 class="display-4">Step 3: Evaluate Model</h1>
-        <button class="btn btn-success" id="guess">Guess</button>
+        <button class="btn btn-success" id="guessButton">Guess</button>
     </div>
 
     <div>
-        <canvas id="frame" width="200" height="200"></canvas>
-        <p class="lead" id="answer">Draw your test data.</p class="lead">
+        <canvas id="testCanvas" width="200" height="200"></canvas>
+        <p class="lead" id="answerText">Draw your test data.</p class="lead">
     </div>
 
     <div class="bg-info">
