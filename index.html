@@ -38,8 +38,15 @@
 
     <div>
         <h1 class="display-4">Step 2: Train Model</h1>
+        <label for="hiddenSizeInput">Hidden Size</label>
+        <input type="number" id="hiddenSizeInput" value="16" min="1">
+        <label for="alphaInput">Alpha</label>
+        <input type="number" id="alphaInput" value="1" min="1">
+        <label for="iterationsInput">Iterations</label>
+        <input type="number" id="iterationsInput" value="500" min="1">
+        <br>
         <button class="btn btn-primary" id="trainButton">Train</button>
-        <p class="lead" id="logText">Please click Train and wait for a few seconds.</p>
+        <p class="lead" id="logText"></p>
     </div>
 
     <div>
@@ -49,7 +56,7 @@
 
     <div>
         <canvas id="testCanvas" width="200" height="200"></canvas>
-        <p class="lead" id="answerText">Draw your test data.</p class="lead">
+        <p class="lead" id="answerText"></p class="lead">
     </div>
 
     <div class="bg-info">

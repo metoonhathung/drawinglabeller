@@ -1,15 +1,17 @@
-function NeuralNetwork() {
+function NeuralNetwork(h, a, i) {
     let x = [];
     let y = [];
     let inputSize = 0;
     let outputSize = 0;
-    let hiddenSize = 16;
-    let alpha = 1;
-    let iterations = 501;
+    let hiddenSize = h;
+    let alpha = a;
+    let iterations = i;
     let error = 0;
-    let synapse_0, synapse_1, layer_0, layer_1, layer_1_error, layer_1_delta, layer_2, layer_2_error, layer_2_delta;
+    let synapse0, synapse1, layer0, layer1, layer1Error, layer1Delta, layer2, layer2Error, layer2Delta;
 
     function collect(data) {
+        x = [];
+        y = [];
         data.forEach(item => {
             x.push(item.input);
             y.push(item.output);
@@ -19,58 +21,56 @@ function NeuralNetwork() {
     };
 
     this.train = (data) => {
+        console.log("h", hiddenSize, "a", alpha, "i", iterations);
         console.log('DATA', data);
         collect(data);
 
-        // randomly initialize weights with mean 0
-        synapse_0 = random(create(inputSize, hiddenSize)); //inputSize x hiddenSize
-        synapse_1 = random(create(hiddenSize, outputSize)); //hiddenSize x outputSize
+        if (!synapse0 && !synapse1) {
+            // randomly initialize weights with mean 0
+            synapse0 = random(inputSize, hiddenSize); //inputSize x hiddenSize
+            synapse1 = random(hiddenSize, outputSize); //hiddenSize x outputSize
+        }
 
         for (let j = 0; j < iterations; j++) {
 
             // feed forward through layers 0, 1, and 2
-            layer_0 = x; //sample x inputSize
-            layer_1 = sigmoid(mult(layer_0, synapse_0)); //sample x hiddenSize
-            layer_2 = sigmoid(mult(layer_1, synapse_1)); //sample x outputSize
+            layer0 = x; //sample x inputSize
+            layer1 = sigmoid(mult(layer0, synapse0)); //sample x hiddenSize
+            layer2 = sigmoid(mult(layer1, synapse1)); //sample x outputSize
 
             // miss from target
-            layer_2_error = operation(layer_2, "-", y); //sample x outputSize
+            layer2Error = operation(layer2, "-", y); //sample x outputSize
+
+            calculateError();
+            if (j % Math.floor(iterations / 10) === 0) {
+                console.log("ERROR", j, error);
+            }
+
 
             // direction to target
-            layer_2_delta = operation(layer_2_error, "*", sigmoid_output_to_derivative(layer_2)); //sample x outputSize
+            layer2Delta = operation(layer2Error, "*", sigmoidOutputToDerivative(layer2)); //sample x outputSize
 
             // backpropagating
-            layer_1_error = mult(layer_2_delta, transpose(synapse_1)); //sample x hiddenSize
+            layer1Error = mult(layer2Delta, transpose(synapse1)); //sample x hiddenSize
 
             // direction to target l1
-            layer_1_delta = operation(layer_1_error, "*", sigmoid_output_to_derivative(layer_1)); //sample x hiddenSize
+            layer1Delta = operation(layer1Error, "*", sigmoidOutputToDerivative(layer1)); //sample x hiddenSize
 
             //update weights
-            synapse_1 = operation(synapse_1, "-", operation(create(hiddenSize, outputSize, alpha), "*", mult(transpose(layer_1), layer_2_delta)));
-            synapse_0 = operation(synapse_0, "-", operation(create(inputSize, hiddenSize, alpha), "*", mult(transpose(layer_0), layer_1_delta)));
+            synapse1 = operation(synapse1, "-", operation(create(hiddenSize, outputSize, alpha), "*", mult(transpose(layer1), layer2Delta)));
+            synapse0 = operation(synapse0, "-", operation(create(inputSize, hiddenSize, alpha), "*", mult(transpose(layer0), layer1Delta)));
 
-            //log error
-            if (j % Math.floor(iterations / 10) === 0) {
-                error = 0;
-                for (let row = 0; row < layer_2_error.length; row++) {
-                    for (let col = 0; col < layer_2_error[row].length; col++) {
-                        error += Math.abs(layer_2_error[row][col]);
-                    }
-                }
-                error /= layer_2_error.length * layer_2_error[0].length;
-                console.log("Error after " + j + " iterations: " + error);
-            }
         }
-        console.log("LAYER_2", layer_2);
+        console.log("LAYER2", layer2);
         return { inputSize, outputSize, hiddenSize, alpha, iterations, error };
     };
 
     this.run = (input) => {
-        let new_layer_0 = [input]; //sample x inputSize
-        let new_layer_1 = sigmoid(mult(new_layer_0, synapse_0)); //sample x hiddenSize
-        let new_layer_2 = sigmoid(mult(new_layer_1, synapse_1)); //sample x outputSize
-        console.log('RESULT', new_layer_2[0]);
-        return new_layer_2[0];
+        let newLayer0 = [input]; //sample x inputSize
+        let newLayer1 = sigmoid(mult(newLayer0, synapse0)); //sample x hiddenSize
+        let newLayer2 = sigmoid(mult(newLayer1, synapse1)); //sample x outputSize
+        console.log('RESULT', newLayer2[0]);
+        return newLayer2[0];
     };
 
     this.likely = (result) => {
@@ -82,8 +82,19 @@ function NeuralNetwork() {
                 index = i;
             }
         }
+        console.log("LIKELY", index);
         return index;
     };
+
+    function calculateError() {
+        error = 0;
+        for (let row = 0; row < layer2Error.length; row++) {
+            for (let col = 0; col < layer2Error[row].length; col++) {
+                error += Math.abs(layer2Error[row][col]);
+            }
+        }
+        error /= layer2Error.length * layer2Error[0].length;
+    }
 
     // *********************************** UTILS ***********************************
 
@@ -95,7 +106,7 @@ function NeuralNetwork() {
     }
 
     // sigmoid to derivative
-    function sigmoid_output_to_derivative(mat) {
+    function sigmoidOutputToDerivative(mat) {
         return mat.map(row => {
             return row.map(col => col * (1 - col));
         });
@@ -150,11 +161,14 @@ function NeuralNetwork() {
         return Array(row).fill(Array(col).fill(val));
     }
 
-    function random(mat) {
-        for (let i = 0; i < mat.length; i++) {
-            for (let j = 0; j < mat[i].length; j++) {
-                mat[i][j] = Math.random() * 2 - 1;
+    function random(row, col) {
+        let mat = [];
+        for (let i = 0; i < row; i++) {
+            let arr = [];
+            for (let j = 0; j < col; j++) {
+                arr.push(Math.random() * 2 - 1);
             }
+            mat.push(arr);
         }
         return mat;
     }

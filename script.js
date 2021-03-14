@@ -7,7 +7,10 @@ const canvasTable = document.getElementById("canvasTable");
 const testCanvas = document.getElementById("testCanvas");
 const imagesInput = document.getElementById("imagesInput");
 const typesInput = document.getElementById("typesInput");
-let myNet, arr, test;
+const hiddenSizeInput = document.getElementById("hiddenSizeInput");
+const alphaInput = document.getElementById("alphaInput");
+const iterationsInput = document.getElementById("iterationsInput");
+let myNet, arr, test, images, types, hiddenSize, alpha, iterations;
 
 function DrawableCanvas(el) {
     this.type = parseInt(el.dataset.type);
@@ -110,14 +113,14 @@ function DrawableCanvas(el) {
                     }
                 }
 
-                if (nonEmptyPixelsCount > 1) {
-                    cell(x, y, xStep, yStep);
-                }
+                // if (nonEmptyPixelsCount > 0) {
+                //     cell(x, y, xStep, yStep);
+                // }
 
-                vector.push(nonEmptyPixelsCount > 1 ? 1 : 0);
+                vector.push(nonEmptyPixelsCount > 0 ? 1 : 0);
             }
         }
-        grid();
+        // grid();
         return vector;
     };
 
@@ -154,9 +157,9 @@ createAll();
 trainButton.addEventListener('click', () => {
     const data = [];
     arr.forEach(item => {
-        for (let i = 0; i < parseInt(typesInput.value); i++) {
+        for (let i = 0; i < types; i++) {
             if (item.type === i) {
-                let outputArr = new Array(parseInt(typesInput.value)).fill(0);
+                let outputArr = new Array(types).fill(0);
                 outputArr[i] = 1;
                 data.push({ input: item.getVector(), output: outputArr });
             }
@@ -167,7 +170,8 @@ trainButton.addEventListener('click', () => {
         logText.innerHTML = `Training completed.<br>${JSON.stringify(stats)}`;
         guessButton.classList.remove("disabled");
     } else {
-        logText.innerHTML = "Training failed.<br>Please click Restart and try again.";
+        createNet();
+        logText.innerHTML = "Training failed.<br>Please click Train and try again.";
     }
 });
 
@@ -181,13 +185,18 @@ guessButton.addEventListener('click', () => {
 restartButton.addEventListener('click', createAll);
 imagesInput.addEventListener('change', createAll);
 typesInput.addEventListener('change', createAll);
+hiddenSizeInput.addEventListener('change', createNet);
+alphaInput.addEventListener('change', createNet);
+iterationsInput.addEventListener('change', createNet);
 
 function createAll() {
+    images = parseInt(imagesInput.value);
+    types = parseInt(typesInput.value);
     createCanvas();
     arr.forEach(item => item.reset());
     test = new DrawableCanvas(testCanvas);
     test.reset();
-    myNet = new NeuralNetwork();
+    createNet();
     guessButton.classList.add("disabled");
     logText.innerHTML = "Please click Train and wait for a few seconds.";
     answerText.innerHTML = "Draw your test data.";
@@ -195,14 +204,14 @@ function createAll() {
 
 function createCanvas() {
     let string = "";
-    for (let i = 0; i < parseInt(typesInput.value); i++) {
+    for (let i = 0; i < types; i++) {
         string += `
         <tr>
             <th>
                 <p class="lead">Type ${i}</p>
             </th>
         `;
-        for (let j = 0; j < parseInt(imagesInput.value); j++) {
+        for (let j = 0; j < images; j++) {
             string += `
             <td>
                 <canvas class="data" data-type="${i}" width="200" height="200"></canvas>
@@ -213,4 +222,11 @@ function createCanvas() {
     }
     canvasTable.innerHTML = string;
     arr = [...document.querySelectorAll(".data")].map(item => new DrawableCanvas(item));
+}
+
+function createNet() {
+    hiddenSize = parseInt(hiddenSizeInput.value);
+    alpha = parseInt(alphaInput.value);
+    iterations = parseInt(iterationsInput.value);
+    myNet = new NeuralNetwork(hiddenSize, alpha, iterations);
 }
