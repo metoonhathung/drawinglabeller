@@ -7,7 +7,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Neural Network</title>
+    <title>Drawing Labeller</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="https://img.icons8.com/cotton/2x/brain-3.png" type="image/x-icon">
@@ -19,7 +19,7 @@
 
 <body>
     <div class="bg-info">
-        <h1 class="display-4 text-white">Neural Network</h1>
+        <h1 class="display-4 text-white">Drawing Labeller</h1>
     </div>
     <div>
         <h1 class="display-4">Step 1: Prepare data</h1>
@@ -37,20 +37,24 @@
     </table>
 
     <div>
-        <h1 class="display-4">Step 2: Train Model</h1>
-        <label for="hiddenSizeInput">Hidden Size</label>
-        <input type="number" id="hiddenSizeInput" value="16" min="1">
-        <label for="alphaInput">Alpha</label>
-        <input type="number" id="alphaInput" value="1" min="1">
+        <h1 class="display-4">Step 2: Training</h1>
+        <p class="lead">Train the Neural Network. Hidden layers sizes: integers separated by '/'. Learning rate: float. Dropout percent: float. Iterations: integer.</p>
+        <label for="hiddenSizesInput">Hidden layers sizes</label>
+        <input type="text" id="hiddenSizesInput" value="16">
+        <label for="learningRateInput">Learning rate</label>
+        <input type="text" id="learningRateInput" value="0.25">
+        <label for="dropoutPercentInput">Dropout percent</label>
+        <input type="text" id="dropoutPercentInput" value="0.2">
         <label for="iterationsInput">Iterations</label>
-        <input type="number" id="iterationsInput" value="500" min="1">
+        <input type="text" id="iterationsInput" value="100">
         <br>
         <button class="btn btn-primary" id="trainButton">Train</button>
         <p class="lead" id="logText"></p>
     </div>
 
     <div>
-        <h1 class="display-4">Step 3: Evaluate Model</h1>
+        <h1 class="display-4">Step 3: Testing</h1>
+        <p class="lead">Evaluate the model by testing new unlabelled data.</p>
         <button class="btn btn-success" id="guessButton">Guess</button>
     </div>
 
@@ -60,7 +64,7 @@
     </div>
 
     <div class="bg-info">
-        <a href="https://github.com/metoonhathung/neuralnetwork/" target="_blank">
+        <a href="https://github.com/metoonhathung/drawinglabeller/" target="_blank">
             <p class="lead text-white">Source Code on GitHub</p>
         </a>
     </div>

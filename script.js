@@ -7,10 +7,11 @@ const canvasTable = document.getElementById("canvasTable");
 const testCanvas = document.getElementById("testCanvas");
 const imagesInput = document.getElementById("imagesInput");
 const typesInput = document.getElementById("typesInput");
-const hiddenSizeInput = document.getElementById("hiddenSizeInput");
-const alphaInput = document.getElementById("alphaInput");
+const hiddenSizesInput = document.getElementById("hiddenSizesInput");
+const learningRateInput = document.getElementById("learningRateInput");
 const iterationsInput = document.getElementById("iterationsInput");
-let myNet, arr, test, images, types, hiddenSize, alpha, iterations;
+const dropoutPercentInput = document.getElementById("dropoutPercentInput");
+let myNet, arr, test, images, types, hiddenSizes, learningRate, dropoutPercent, iterations;
 
 function DrawableCanvas(el) {
     this.type = parseInt(el.dataset.type);
@@ -159,20 +160,22 @@ trainButton.addEventListener('click', () => {
     arr.forEach(item => {
         for (let i = 0; i < types; i++) {
             if (item.type === i) {
+                // one-hot vector
                 let outputArr = new Array(types).fill(0);
                 outputArr[i] = 1;
                 data.push({ input: item.getVector(), output: outputArr });
             }
         }
     });
+    createNet();
     let stats = myNet.train(data);
-    if (stats.error < 0.1) {
-        logText.innerHTML = `Training completed.<br>${JSON.stringify(stats)}`;
+    if (stats.mse < 0.25) {
+        logText.innerHTML = "Training completed.";
         guessButton.classList.remove("disabled");
     } else {
-        createNet();
-        logText.innerHTML = "Training failed.<br>Please click Train and try again.";
+        logText.innerHTML = "Training failed. Please click Train again and wait.";
     }
+    logText.innerHTML += `<br>${JSON.stringify(stats)}`;
 });
 
 guessButton.addEventListener('click', () => {
@@ -185,9 +188,10 @@ guessButton.addEventListener('click', () => {
 restartButton.addEventListener('click', createAll);
 imagesInput.addEventListener('change', createAll);
 typesInput.addEventListener('change', createAll);
-hiddenSizeInput.addEventListener('change', createNet);
-alphaInput.addEventListener('change', createNet);
+hiddenSizesInput.addEventListener('change', createNet);
+learningRateInput.addEventListener('change', createNet);
 iterationsInput.addEventListener('change', createNet);
+dropoutPercentInput.addEventListener('change', createNet);
 
 function createAll() {
     images = parseInt(imagesInput.value);
@@ -198,8 +202,8 @@ function createAll() {
     test.reset();
     createNet();
     guessButton.classList.add("disabled");
-    logText.innerHTML = "Please click Train and wait for a few seconds.";
-    answerText.innerHTML = "Draw your test data.";
+    logText.innerHTML = "Please click Train and wait.";
+    answerText.innerHTML = "Draw an image to test.";
 }
 
 function createCanvas() {
@@ -225,8 +229,9 @@ function createCanvas() {
 }
 
 function createNet() {
-    hiddenSize = parseInt(hiddenSizeInput.value);
-    alpha = parseInt(alphaInput.value);
+    hiddenSizes = hiddenSizesInput.value.split('/').map(Number);;
+    learningRate = parseFloat(learningRateInput.value);
+    dropoutPercent = parseFloat(dropoutPercentInput.value);
     iterations = parseInt(iterationsInput.value);
-    myNet = new NeuralNetwork(hiddenSize, alpha, iterations);
+    myNet = new NeuralNetwork(hiddenSizes, learningRate, dropoutPercent, iterations);
 }

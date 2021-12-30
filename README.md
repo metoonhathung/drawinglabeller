@@ -1,16 +1,7 @@
-# Neural Network
+# Drawing Labeller
 
-https://metoonhathung.github.io/neuralnetwork/
+[Demo](https://metoonhathung.github.io/drawinglabeller/)
 
-Description: A web application to demonstrate how Neural Network works: prepare data, train model and evaluate model. Neural Network is implemented using Gradient Descent with one hidden layer. Data is collected and processed using user's canvas drawings.
+Description: A web application to collect user's labelled drawings to label new drawing using Neural Network. Neural Network is implemented from scratch using Gradient Descent with customizable hidden layers. Data is collected and processed using user's canvas drawings.
 
 Technologies: Javascript, HTML, CSS, Bootstrap
-
-### To run the code locally:
-
-```
-git clone https://github.com/metoonhathung/neuralnetwork.git
-cd neuralnetwork
-```
-
-Open `index.html` in the browser

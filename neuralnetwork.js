@@ -1,13 +1,16 @@
-function NeuralNetwork(h, a, i) {
+function NeuralNetwork(h, lr, d, i) {
     let x = [];
     let y = [];
-    let inputSize = 0;
-    let outputSize = 0;
-    let hiddenSize = h;
-    let alpha = a;
+    let hiddenSizes = h;
+    let learningRate = lr;
+    let dropoutPercent = d;
     let iterations = i;
-    let error = 0;
-    let synapse0, synapse1, layer0, layer1, layer1Error, layer1Delta, layer2, layer2Error, layer2Delta;
+    let mse = 0;
+    let layerSizes = [];
+    let weights = [];
+    let biases = [];
+    let layers = [];
+    let deltas = [];
 
     function collect(data) {
         x = [];
@@ -16,61 +19,70 @@ function NeuralNetwork(h, a, i) {
             x.push(item.input);
             y.push(item.output);
         });
-        inputSize = x[0].length;
-        outputSize = y[0].length;
+        layerSizes = [x[0].length, ...hiddenSizes, y[0].length];
+        weights.length = biases.length = layers.length = deltas.length = layerSizes.length;
     };
 
     this.train = (data) => {
-        console.log("h", hiddenSize, "a", alpha, "i", iterations);
-        console.log('DATA', data);
         collect(data);
+        
+        // initialize weights
+        for (let i = 0; i < weights.length - 1; i++) {
+            weights[i] = create(layerSizes[i], layerSizes[i+1]);
+        }
 
-        if (!synapse0 && !synapse1) {
-            // randomly initialize weights with mean 0
-            synapse0 = random(inputSize, hiddenSize); //inputSize x hiddenSize
-            synapse1 = random(hiddenSize, outputSize); //hiddenSize x outputSize
+        // initialize biases
+        for (let i = 1; i < biases.length; i++) {
+            biases[i] = create(1, layerSizes[i])[0];
         }
 
         for (let j = 0; j < iterations; j++) {
 
-            // feed forward through layers 0, 1, and 2
-            layer0 = x; //sample x inputSize
-            layer1 = sigmoid(mult(layer0, synapse0)); //sample x hiddenSize
-            layer2 = sigmoid(mult(layer1, synapse1)); //sample x outputSize
-
-            // miss from target
-            layer2Error = operation(layer2, "-", y); //sample x outputSize
-
-            calculateError();
-            if (j % Math.floor(iterations / 10) === 0) {
-                console.log("ERROR", j, error);
+            // feedforward
+            layers[0] = x;
+            for (let i = 1; i < layers.length; i++) {
+                let output = operation(mul(layers[i-1], weights[i-1]), "+", broadcast(biases[i], x.length));
+                let dropout = dropoutVector(layerSizes[i], dropoutPercent);
+                layers[i] = i === layers.length - 1 ? softmax(output) : operation(sigmoid(output), "*", broadcast(dropout, x.length));
+            }
+            
+            // backprop
+            for (let i = deltas.length - 1; i >= 1; i--) {
+                // miss from target
+                let error = i === layers.length - 1 ? operation(layers[i], "-", y) : mul(deltas[i+1], transpose(weights[i]));
+                // direction to target
+                deltas[i] = operation(error, "*", sigmoidDerivative(layers[i]))
+                // mean squared error
+                if (i === layers.length - 1) calculateMSE(error);
             }
 
+            // update weights
+            for (let i = weights.length - 2; i >= 0; i--) {
+                weights[i] = operation(weights[i], "-", operation(create(layerSizes[i], layerSizes[i+1], learningRate), "*", mul(transpose(layers[i]), deltas[i+1])));
+            }
 
-            // direction to target
-            layer2Delta = operation(layer2Error, "*", sigmoidOutputToDerivative(layer2)); //sample x outputSize
+            // update biases
+            for (let i = biases.length - 1; i >= 1; i--) {
+                for (let dRow of deltas[i]) {
+                    biases[i] = operation([biases[i]], "-", [dRow])[0];
+                }
+            }
 
-            // backpropagating
-            layer1Error = mult(layer2Delta, transpose(synapse1)); //sample x hiddenSize
-
-            // direction to target l1
-            layer1Delta = operation(layer1Error, "*", sigmoidOutputToDerivative(layer1)); //sample x hiddenSize
-
-            //update weights
-            synapse1 = operation(synapse1, "-", operation(create(hiddenSize, outputSize, alpha), "*", mult(transpose(layer1), layer2Delta)));
-            synapse0 = operation(synapse0, "-", operation(create(inputSize, hiddenSize, alpha), "*", mult(transpose(layer0), layer1Delta)));
-
+            if (j % Math.floor(iterations / 10) === 0) {
+                console.log("ERROR", j, mse);
+            }
+            
         }
-        console.log("LAYER2", layer2);
-        return { inputSize, outputSize, hiddenSize, alpha, iterations, error };
+        return { layerSizes, learningRate, dropoutPercent, iterations, mse };
     };
 
     this.run = (input) => {
-        let newLayer0 = [input]; //sample x inputSize
-        let newLayer1 = sigmoid(mult(newLayer0, synapse0)); //sample x hiddenSize
-        let newLayer2 = sigmoid(mult(newLayer1, synapse1)); //sample x outputSize
-        console.log('RESULT', newLayer2[0]);
-        return newLayer2[0];
+        let layer = [input];
+        for (let i = 1; i < layerSizes.length; i++) {
+            let output = operation(mul(layer, weights[i-1]), "+", broadcast(biases[i], 1));
+            layer = i === layerSizes.length - 1 ? softmax(output) : sigmoid(output);
+        }
+        return layer[0];
     };
 
     this.likely = (result) => {
@@ -82,18 +94,17 @@ function NeuralNetwork(h, a, i) {
                 index = i;
             }
         }
-        console.log("LIKELY", index);
         return index;
     };
 
-    function calculateError() {
-        error = 0;
-        for (let row = 0; row < layer2Error.length; row++) {
-            for (let col = 0; col < layer2Error[row].length; col++) {
-                error += Math.abs(layer2Error[row][col]);
+    function calculateMSE(error) {
+        mse = 0;
+        for (let row = 0; row < error.length; row++) {
+            for (let col = 0; col < error[row].length; col++) {
+                mse += Math.pow(error[row][col], 2);
             }
         }
-        error /= layer2Error.length * layer2Error[0].length;
+        mse /= error.length * error[0].length;
     }
 
     // *********************************** UTILS ***********************************
@@ -106,13 +117,32 @@ function NeuralNetwork(h, a, i) {
     }
 
     // sigmoid to derivative
-    function sigmoidOutputToDerivative(mat) {
+    function sigmoidDerivative(mat) {
         return mat.map(row => {
             return row.map(col => col * (1 - col));
         });
     }
 
-    function mult(mat1, mat2) {
+    // softmax
+    function softmax(mat) {
+        return mat.map(row => {
+            let denominator = row.map(col => Math.exp(col)).reduce((sum, curr) => { return sum + curr; });
+            return row.map(col => Math.exp(col) / denominator);
+        });
+    }
+
+    // dropout
+    function dropoutVector(length, p) {
+        let arr = [];
+        for (let i = 0; i < length; i++) {
+            let rand = Math.random();
+            if (rand <= p) arr.push(0);
+            else arr.push(1);
+        }
+        return arr.map(elm => elm / (1 - p));
+    }
+
+    function mul(mat1, mat2) {
         return mat1.map((row, i) => {
             return transpose(mat2).map((rowT, j) => {
                 return dot(row, rowT);
@@ -157,19 +187,24 @@ function NeuralNetwork(h, a, i) {
         });
     }
 
-    function create(row, col, val = 0) {
-        return Array(row).fill(Array(col).fill(val));
-    }
-
-    function random(row, col) {
+    function create(row, col, val) {
         let mat = [];
         for (let i = 0; i < row; i++) {
             let arr = [];
             for (let j = 0; j < col; j++) {
-                arr.push(Math.random() * 2 - 1);
+                let value = val ? val : Math.random() * 2 - 1;
+                arr.push(value);
             }
             mat.push(arr);
         }
         return mat;
+    }
+
+    function broadcast(arr, times, isRow = true) {
+        let mat = [];
+        for (let i = 0; i < times; i++) {
+            mat.push(arr);
+        }
+        return isRow ? mat : transpose(mat);
     }
 }
